@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>4D Chess - Mobile</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color:  transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background:  linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #0f3460 100%);
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        header {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        header h1 {
+            font-size: clamp(1.3rem, 5vw, 1.8rem);
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        #canvas-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 10, 10, 0.98);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        . loader {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            margin-top: 20px;
+            font-size: 1.1rem;
+            color: #667eea;
+        }
+
+        #controls {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            padding: 12px;
+            border-top: 1px solid rgba(102, 126, 234, 0.3);
+            max-height: 35vh;
+            overflow-y: auto;
+        }
+
+        . control-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .control-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .control-value {
+            color: #667eea;
+            font-weight: 600;
+            min-width: 35px;
+            text-align: right;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+            margin-top: 6px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius:  50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius:  50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size:  0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        #info-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(10px);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size:  0.75rem;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="loader"></div>
+        <div id="loading-text">Loading 4D Chess...</div>
+    </div>
+
+    <div id="app">
+        <header>
+            <h1>♔ 4D Chess ♚</h1>
+        </header>
+
+        <div id="canvas-container">
+            <div id="info-badge">
+                📊 4 Boards • 4D Logic
+            </div>
+        </div>
+
+        <div id="controls">
+            <div class="control-row">
+                <div style="width: 100%;">
+                    <div class="control-label">Board Opacity <span class="control-value" id="opacityValue">0.6</span></div>
+                    <input type="range" id="opacity" min="0.2" max="0.9" step="0.1" value="0.6">
+                </div>
+            </div>
+
+            <div class="control-row">
+                <div style="width: 100%;">
+                    <div class="control-label">Board Spacing <span class="control-value" id="spacingValue">2. 5</span></div>
+                    <input type="range" id="spacing" min="1.5" max="4" step="0.5" value="2.5">
+                </div>
+            </div>
+
+            <button class="btn" id="resetBtn">🔄 Reset View</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        // Configuration
+        const CONFIG = {
+            boardSize: 4,
+            numBoards: 4,
+            squareSize: 0.5,
+            boardSpacing: 2.5,
+            boardOpacity: 0.6,
+            pieceScale: 0.08,
+            lightColor: 0xf0d9b5,
+            darkColor: 0xb58863,
+            
+            // Your GLB file paths
+            pieceModels: {
+                white: {
+                    pawn: 'models/pawn-white.glb',
+                    rook: 'models/rook-white.glb',
+                    knight: 'models/knight-white.glb',
+                    bishop: 'models/bishop-white.glb',
+                    queen: 'models/queen-white.glb',
+                    king: 'models/king-white.glb'
+                },
+                black: {
+                    pawn: 'models/pawn-black.glb',
+                    rook: 'models/rook-black.glb',
+                    knight: 'models/knight-black.glb',
+                    bishop: 'models/bishop-black.glb',
+                    queen: 'models/queen-black.glb',
+                    king: 'models/king-black.glb'
+                }
+            }
+        };
+
+        let scene, camera, renderer, controls;
+        let boardGroup, piecesGroup;
+        let loadedModels = { white: {}, black: {} };
+        let loader;
+
+        async function init() {
+            const container = document.getElementById('canvas-container');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            // Camera
+            const aspect = container.clientWidth / container.clientHeight;
+            camera = new THREE.PerspectiveCamera(50, aspect, 0.1, 100);
+            camera.position.set(0, 4, 6);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                powerPreference: 'high-performance'
+            });
+            renderer. setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.minDistance = 3;
+            controls.maxDistance = 15;
+            controls.touches = {
+                ONE: THREE.TOUCH.ROTATE,
+                TWO: THREE.TOUCH.DOLLY_PAN
+            };
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            mainLight. position.set(5, 10, 5);
+            scene.add(mainLight);
+
+            // Initialize loader
+            loader = new THREE.GLTFLoader();
+
+            // Load models
+            await loadAllModels();
+
+            // Create scene
+            createBoards();
+            createPieces();
+
+            // Setup controls
+            setupControls();
+
+            // Resize handler
+            window.addEventListener('resize', onWindowResize);
+
+            // Hide loading
+            document.getElementById('loading').classList.add('hidden');
+
+            // Animate
+            animate();
+        }
+
+        async function loadAllModels() {
+            const loadingText = document.getElementById('loading-text');
+            const promises = [];
+
+            for (const color of ['white', 'black']) {
+                for (const [pieceType, path] of Object.entries(CONFIG. pieceModels[color])) {
+                    promises.push(
+                        loadModel(path).then(model => {
+                            loadedModels[color][pieceType] = model;
+                            loadingText.textContent = `Loading ${color} ${pieceType}...`;
+                        }).catch(err => {
+                            console.warn(`Failed to load ${color} ${pieceType}`);
+                            loadedModels[color][pieceType] = createFallbackPiece(pieceType);
+                        })
+                    );
+                }
+            }
+
+            await Promise. all(promises);
+        }
+
+        function loadModel(path) {
+            return new Promise((resolve, reject) => {
+                loader.load(path, (gltf) => resolve(gltf. scene), undefined, reject);
+            });
+        }
+
+        function createFallbackPiece(type) {
+            const geometries = {
+                pawn: new THREE.SphereGeometry(0.15, 12, 12),
+                rook: new THREE.CylinderGeometry(0.15, 0.15, 0.3, 12),
+                knight: new THREE.ConeGeometry(0.15, 0.3, 12),
+                bishop: new THREE.ConeGeometry(0.12, 0.35, 12),
+                queen:  new THREE.CylinderGeometry(0.1, 0.17, 0.4, 12),
+                king:  new THREE.CylinderGeometry(0.12, 0.12, 0.45, 12)
+            };
+
+            const mesh = new THREE.Mesh(
+                geometries[type] || geometries.pawn,
+                new THREE.MeshPhongMaterial({ color: 0xffffff })
+            );
+
+            const group = new THREE.Group();
+            group.add(mesh);
+            return group;
+        }
+
+        function createBoards() {
+            if (boardGroup) scene.remove(boardGroup);
+            boardGroup = new THREE.Group();
+
+            const totalWidth = (CONFIG.boardSize * CONFIG.squareSize) * CONFIG.numBoards + 
+                             (CONFIG.boardSpacing * (CONFIG.numBoards - 1));
+
+            for (let w = 0; w < CONFIG. numBoards; w++) {
+                const boardOffset = w * (CONFIG.boardSize * CONFIG.squareSize + CONFIG.boardSpacing) - totalWidth / 2;
+
+                for (let x = 0; x < CONFIG. boardSize; x++) {
+                    for (let z = 0; z < CONFIG. boardSize; z++) {
+                        const isLight = (x + z + w) % 2 === 0;
+                        const color = new THREE.Color(isLight ? CONFIG.lightColor : CONFIG.darkColor);
+
+                        const geometry = new THREE.BoxGeometry(
+                            CONFIG.squareSize * 0.95,
+                            0.05,
+                            CONFIG.squareSize * 0.95
+                        );
+
+                        const material = new THREE.MeshPhongMaterial({
+                            color: color,
+                            transparent: true,
+                            opacity:  CONFIG.boardOpacity
+                        });
+
+                        const square = new THREE.Mesh(geometry, material);
+                        
+                        square.position.set(
+                            x * CONFIG.squareSize - (CONFIG.boardSize * CONFIG.squareSize) / 2 + CONFIG.squareSize / 2,
+                            0,
+                            z * CONFIG.squareSize - (CONFIG.boardSize * CONFIG.squareSize) / 2 + CONFIG.squareSize / 2 + boardOffset
+                        );
+
+                        boardGroup.add(square);
+                    }
+                }
+            }
+
+            scene.add(boardGroup);
+        }
+
+        function createPieces() {
+            if (piecesGroup) scene.remove(piecesGroup);
+            piecesGroup = new THREE. Group();
+
+            // 4x4 chess setup
+            const setup = [
+                // White (w=0)
+                { type: 'rook', color: 'white', x: 0, z: 0, w: 0 },
+                { type: 'knight', color: 'white', x: 1, z: 0, w: 0 },
+                { type: 'bishop', color: 'white', x: 2, z: 0, w: 0 },
+                { type: 'queen', color:  'white', x: 3, z: 0, w:  0 },
+                { type: 'pawn', color: 'white', x: 0, z: 1, w:  0 },
+                { type: 'pawn', color:  'white', x: 1, z: 1, w:  0 },
+                { type: 'pawn', color:  'white', x: 2, z: 1, w:  0 },
+                { type: 'pawn', color:  'white', x: 3, z: 1, w:  0 },
+
+                // Black (w=3)
+                { type: 'pawn', color: 'black', x: 0, z: 2, w: 3 },
+                { type: 'pawn', color: 'black', x: 1, z: 2, w: 3 },
+                { type: 'pawn', color: 'black', x: 2, z: 2, w: 3 },
+                { type: 'pawn', color: 'black', x: 3, z: 2, w: 3 },
+                { type: 'rook', color: 'black', x: 0, z: 3, w: 3 },
+                { type: 'knight', color: 'black', x: 1, z:  3, w: 3 },
+                { type: 'bishop', color: 'black', x: 2, z: 3, w: 3 },
+                { type: 'king', color: 'black', x: 3, z: 3, w: 3 },
+            ];
+
+            const totalWidth = (CONFIG.boardSize * CONFIG.squareSize) * CONFIG.numBoards + 
+                             (CONFIG.boardSpacing * (CONFIG.numBoards - 1));
+
+            setup.forEach(pieceData => {
+                const model = loadedModels[pieceData.color][pieceData. type];
+                if (! model) return;
+
+                const piece = model.clone();
+                piece.scale.set(CONFIG.pieceScale, CONFIG.pieceScale, CONFIG.pieceScale);
+
+                const boardOffset = pieceData.w * (CONFIG.boardSize * CONFIG.squareSize + CONFIG.boardSpacing) - totalWidth / 2;
+
+                piece.position. set(
+                    pieceData.x * CONFIG.squareSize - (CONFIG.boardSize * CONFIG.squareSize) / 2 + CONFIG.squareSize / 2,
+                    0.025,
+                    pieceData. z * CONFIG.squareSize - (CONFIG.boardSize * CONFIG. squareSize) / 2 + CONFIG.squareSize / 2 + boardOffset
+                );
+
+                piecesGroup.add(piece);
+            });
+
+            scene.add(piecesGroup);
+        }
+
+        function setupControls() {
+            document.getElementById('opacity').addEventListener('input', (e) => {
+                CONFIG.boardOpacity = parseFloat(e.target.value);
+                document.getElementById('opacityValue').textContent = CONFIG.boardOpacity. toFixed(1);
+                boardGroup.children. forEach(square => {
+                    square.material.opacity = CONFIG.boardOpacity;
+                });
+            });
+
+            document.getElementById('spacing').addEventListener('input', (e) => {
+                CONFIG.boardSpacing = parseFloat(e.target.value);
+                document.getElementById('spacingValue').textContent = CONFIG. boardSpacing.toFixed(1);
+                createBoards();
+                createPieces();
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                camera.position.set(0, 4, 6);
+                controls.target.set(0, 0, 0);
+                controls.update();
+            });
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container. clientHeight);
+        }
+
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
