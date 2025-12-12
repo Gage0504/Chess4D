@@ -924,13 +924,13 @@
 
         function createBoard() {
             if (boardGroup) {
-                scene.remove(boardGroup);
+                scene. remove(boardGroup);
             }
 
-            boardGroup = new THREE.Group();
+            boardGroup = new THREE. Group();
 
             const boardSize = 8;
-            const squareSize = 1;
+            const squareSize = 0.1; // FIXED: Much smaller squares
 
             for (let w = 0; w < settings.wLayers; w++) {
                 for (let z = 0; z < boardSize; z++) {
@@ -942,16 +942,16 @@
                             const geometry = new THREE.BoxGeometry(squareSize * 0.95, squareSize * 0.95, squareSize * 0.95);
                             const material = new THREE.MeshPhongMaterial({
                                 color: color,
-                                transparent: true,
+                                transparent:  true,
                                 opacity: settings.opacity,
                                 shininess: 30
                             });
 
-                            const cube = new THREE.Mesh(geometry, material);
+                            const cube = new THREE. Mesh(geometry, material);
                             cube.position.set(
-                                x - boardSize / 2 + 0.5,
-                                y - boardSize / 2 + 0.5,
-                                z - boardSize / 2 + 0.5 + w * (boardSize + settings.spacing)
+                                x * squareSize - (boardSize * squareSize) / 2 + squareSize / 2,
+                                y * squareSize - (boardSize * squareSize) / 2 + squareSize / 2,
+                                z * squareSize - (boardSize * squareSize) / 2 + squareSize / 2 + w * (boardSize * squareSize + settings.spacing * 0.1)
                             );
 
                             boardGroup.add(cube);
@@ -970,29 +970,31 @@
 
             piecesGroup = new THREE.Group();
 
-            // Sample pieces positions (simplified chess setup)
             const pieces = [
                 // White pieces (w=0, z=0)
-                { x: 0, y: 0, z: 0, w: 0, color: 'white' },
-                { x: 7, y: 0, z: 0, w: 0, color: 'white' },
+                { x: 0, y: 0, z:  0, w: 0, color: 'white' },
+                { x: 7, y: 0, z: 0, w: 0, color:  'white' },
                 { x: 1, y: 1, z: 0, w: 0, color: 'white' },
-                { x: 6, y: 1, z: 0, w: 0, color: 'white' },
+                { x:  6, y: 1, z: 0, w: 0, color: 'white' },
                 // Black pieces (w=0, z=7)
-                { x: 0, y: 0, z: 7, w: 0, color: 'black' },
+                { x: 0, y: 0, z: 7, w: 0, color:  'black' },
                 { x: 7, y: 0, z: 7, w: 0, color: 'black' },
-                { x: 1, y: 1, z: 7, w: 0, color: 'black' },
-                { x: 6, y: 1, z: 7, w: 0, color: 'black' },
-                // Some pieces in other dimensions
-                { x: 3, y: 3, z: 3, w: 1, color: 'white' },
+                { x:  1, y: 1, z: 7, w: 0, color: 'black' },
+                { x: 6, y: 1, z:  7, w: 0, color: 'black' },
+                // Pieces in other dimensions
+                { x: 3, y: 3, z: 3, w:  1, color: 'white' },
                 { x: 4, y: 4, z: 4, w: 2, color: 'black' }
             ];
 
+            const boardSize = 8;
+            const squareSize = 0.1;
+
             pieces.forEach(piece => {
-                const pieceObj = createPiece(piece.color);
-                pieceObj.position.set(
-                    piece.x - 4 + 0.5,
-                    piece.y - 4 + 0.5,
-                    piece.z - 4 + 0.5 + piece.w * (8 + settings.spacing)
+                const pieceObj = createPiece(piece. color);
+                pieceObj. position.set(
+                    piece.x * squareSize - (boardSize * squareSize) / 2 + squareSize / 2,
+                    piece.y * squareSize - (boardSize * squareSize) / 2 + squareSize / 2,
+                    piece.z * squareSize - (boardSize * squareSize) / 2 + squareSize / 2 + piece.w * (boardSize * squareSize + settings.spacing * 0.1)
                 );
                 piecesGroup.add(pieceObj);
             });
@@ -1003,118 +1005,41 @@
         function createPiece(color) {
             let geometry;
             
-            switch (settings.pieceStyle) {
+            switch(settings.pieceStyle) {
                 case 'sphere':
-                    geometry = new THREE.SphereGeometry(settings.pieceSize, 16, 16);
+                    geometry = new THREE.SphereGeometry(0.04, 16, 16); // FIXED: Proper size
                     break;
                 case 'cylinder':
-                    geometry = new THREE.CylinderGeometry(settings.pieceSize, settings.pieceSize, settings.pieceSize * 2, 16);
+                    geometry = new THREE.CylinderGeometry(0.04, 0.04, 0.08, 16);
                     break;
                 case 'cone':
-                    geometry = new THREE.ConeGeometry(settings.pieceSize, settings.pieceSize * 2, 16);
+                    geometry = new THREE.ConeGeometry(0.04, 0.08, 16);
                     break;
                 case 'box':
-                    geometry = new THREE.BoxGeometry(settings.pieceSize * 2, settings.pieceSize * 2, settings.pieceSize * 2);
+                    geometry = new THREE.BoxGeometry(0.06, 0.06, 0.06);
                     break;
                 default:
-                    geometry = new THREE.SphereGeometry(settings.pieceSize, 16, 16);
+                    geometry = new THREE.SphereGeometry(0.04, 16, 16);
             }
-
-            const pieceColor = color === 'white' ? settings.whitePieceColor : settings.blackPieceColor;
+            
             const material = new THREE.MeshPhongMaterial({
-                color: new THREE.Color(pieceColor),
-                shininess: 100,
-                specular: 0x444444
+                color: new THREE.Color(color === 'white' ? settings.whitePieceColor : settings.blackPieceColor),
+                shininess: 100
             });
-
+            
             return new THREE.Mesh(geometry, material);
-        }
-
-        function setupControls() {
-            // Color controls
-            document.getElementById('lightColor').addEventListener('input', (e) => {
-                settings.lightColor = e.target.value;
-                createBoard();
-            });
-
-            document.getElementById('darkColor').addEventListener('input', (e) => {
-                settings.darkColor = e.target.value;
-                createBoard();
-            });
-
-            document.getElementById('whitePieceColor').addEventListener('input', (e) => {
-                settings.whitePieceColor = e.target.value;
-                createPieces();
-            });
-
-            document.getElementById('blackPieceColor').addEventListener('input', (e) => {
-                settings.blackPieceColor = e.target.value;
-                createPieces();
-            });
-
-            // Range controls
-            document.getElementById('opacity').addEventListener('input', (e) => {
-                settings.opacity = parseFloat(e.target.value);
-                document.getElementById('opacityValue').textContent = settings.opacity.toFixed(1);
-                createBoard();
-            });
-
-            document.getElementById('spacing').addEventListener('input', (e) => {
-                settings.spacing = parseFloat(e.target.value);
-                document.getElementById('spacingValue').textContent = settings.spacing.toFixed(1);
-                createBoard();
-                createPieces();
-            });
-
-            document.getElementById('wLayers').addEventListener('input', (e) => {
-                settings.wLayers = parseInt(e.target.value);
-                document.getElementById('wLayersValue').textContent = settings.wLayers;
-                createBoard();
-                createPieces();
-            });
-
-            document.getElementById('pieceSize').addEventListener('input', (e) => {
-                settings.pieceSize = parseFloat(e.target.value);
-                document.getElementById('pieceSizeValue').textContent = settings.pieceSize.toFixed(2);
-                createPieces();
-            });
-
-            document.getElementById('rotation').addEventListener('input', (e) => {
-                settings.rotationSpeed = parseFloat(e.target.value);
-                document.getElementById('rotationValue').textContent = settings.rotationSpeed.toFixed(1);
-            });
-
-            // Select controls
-            document.getElementById('pieceStyle').addEventListener('change', (e) => {
-                settings.pieceStyle = e.target.value;
-                createPieces();
-            });
-
-            // Button controls
-            document.getElementById('resetBtn').addEventListener('click', () => {
-                controls.reset();
-                boardGroup.rotation.set(0, 0, 0);
-            });
-
-            document.getElementById('randomizeBtn').addEventListener('click', () => {
-                camera.position.set(
-                    Math.random() * 30 - 15,
-                    Math.random() * 30 - 15,
-                    Math.random() * 30 - 15
-                );
-                controls.update();
-            });
         }
 
         function animate() {
             animationId = requestAnimationFrame(animate);
 
-            // Auto-rotate board
-            if (boardGroup && settings.rotationSpeed > 0) {
-                boardGroup.rotation.y += settings.rotationSpeed * 0.01;
-            }
-            if (piecesGroup && settings.rotationSpeed > 0) {
-                piecesGroup.rotation.y += settings.rotationSpeed * 0.01;
+            if (settings.rotationSpeed > 0) {
+                if (boardGroup) {
+                    boardGroup.rotation.y += settings.rotationSpeed * 0.001;
+                }
+                if (piecesGroup) {
+                    piecesGroup.rotation. y += settings.rotationSpeed * 0.001;
+                }
             }
 
             controls.update();
@@ -1128,12 +1053,98 @@
             renderer.setSize(container.clientWidth, container.clientHeight);
         }
 
-        // Initialize when DOM is loaded
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
+        function setupControls() {
+            document.getElementById('lightColor').addEventListener('input', (e) => {
+                settings.lightColor = e.target.value;
+                createBoard();
+            });
+
+            document.getElementById('darkColor').addEventListener('input', (e) => {
+                settings.darkColor = e. target.value;
+                createBoard();
+            });
+
+            document. getElementById('opacity').addEventListener('input', (e) => {
+                settings.opacity = parseFloat(e. target.value);
+                document.getElementById('opacityValue').textContent = settings.opacity.toFixed(1);
+                createBoard();
+            });
+
+            document.getElementById('spacing').addEventListener('input', (e) => {
+                settings.spacing = parseFloat(e.target.value);
+                document.getElementById('spacingValue').textContent = settings. spacing.toFixed(1);
+                createBoard();
+                createPieces();
+            });
+
+            document.getElementById('wLayers').addEventListener('input', (e) => {
+                settings.wLayers = parseInt(e.target. value);
+                document.getElementById('wLayersValue').textContent = settings.wLayers;
+                createBoard();
+                createPieces();
+            });
+
+            document.getElementById('whitePieceColor').addEventListener('input', (e) => {
+                settings.whitePieceColor = e.target.value;
+                createPieces();
+            });
+
+            document. getElementById('blackPieceColor').addEventListener('input', (e) => {
+                settings.blackPieceColor = e.target.value;
+                createPieces();
+            });
+
+            document.getElementById('pieceStyle').addEventListener('change', (e) => {
+                settings.pieceStyle = e. target.value;
+                createPieces();
+            });
+
+            document.getElementById('pieceSize').addEventListener('input', (e) => {
+                settings. pieceSize = parseFloat(e.target.value);
+                document.getElementById('pieceSizeValue').textContent = settings.pieceSize.toFixed(2);
+                createPieces();
+            });
+
+            document.getElementById('rotation').addEventListener('input', (e) => {
+                settings.rotationSpeed = parseFloat(e.target.value);
+                document.getElementById('rotationValue').textContent = settings.rotationSpeed.toFixed(1);
+            });
+
+            document.getElementById('resetBtn').addEventListener('click', () => {
+                camera.position.set(15, 15, 15);
+                controls.target.set(0, 0, 0);
+                controls.update();
+            });
+
+            document.getElementById('randomizeBtn').addEventListener('click', () => {
+                scene.remove(piecesGroup);
+                piecesGroup = new THREE.Group();
+                
+                const numPieces = Math.floor(Math.random() * 15) + 10;
+                const boardSize = 8;
+                const squareSize = 0.1;
+                
+                for (let i = 0; i < numPieces; i++) {
+                    const x = Math.floor(Math.random() * 8);
+                    const y = Math.floor(Math.random() * 8);
+                    const z = Math.floor(Math. random() * 8);
+                    const w = Math.floor(Math.random() * settings.wLayers);
+                    const color = Math.random() > 0.5 ? 'white' : 'black';
+                    
+                    const pieceObj = createPiece(color);
+                    pieceObj.position.set(
+                        x * squareSize - (boardSize * squareSize) / 2 + squareSize / 2,
+                        y * squareSize - (boardSize * squareSize) / 2 + squareSize / 2,
+                        z * squareSize - (boardSize * squareSize) / 2 + squareSize / 2 + w * (boardSize * squareSize + settings.spacing * 0.1)
+                    );
+                    piecesGroup.add(pieceObj);
+                }
+                
+                scene.add(piecesGroup);
+            });
         }
+
+        window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
