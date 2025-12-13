@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4D Chess Game</title>
+    <link rel="stylesheet" href="css/game-style.css">
+</head>
+<body>
+    <div id="container">
+        <header>
+            <h1>♔ 4D Chess ♔</h1>
+            <p>Standard Chess Pieces in Four Dimensions</p>
+        </header>
+
+        <div id="main-content">
+            <!-- Left sidebar: Game info -->
+            <aside id="left-panel">
+                <div class="panel-section">
+                    <h3>Game Status</h3>
+                    <div id="game-status" class="status white">WHITE's turn</div>
+                    <button id="reset-btn" class="btn">New Game</button>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Captured by White</h3>
+                    <div id="captured-white" class="captured-pieces"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Captured by Black</h3>
+                    <div id="captured-black" class="captured-pieces"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>How to Play</h3>
+                    <ul class="instructions">
+                        <li>Click a piece to select it</li>
+                        <li>Valid moves are highlighted</li>
+                        <li>Click a highlighted square to move</li>
+                        <li>The board shows 16 mini-boards (4×4 grid)</li>
+                        <li>Each mini-board represents a (W,X) coordinate</li>
+                        <li>Each square is at position (Y,Z)</li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Center: Chess board -->
+            <main id="game-area">
+                <div id="board-container">
+                    <div id="chess-board"></div>
+                </div>
+                <div id="message" class="message"></div>
+            </main>
+
+            <!-- Right sidebar: Move history -->
+            <aside id="right-panel">
+                <div class="panel-section">
+                    <h3>Move History</h3>
+                    <div id="move-history" class="move-history"></div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Piece Movement</h3>
+                    <ul class="piece-guide">
+                        <li><strong>♖ Rook:</strong> Moves along one dimension (orthogonal)</li>
+                        <li><strong>♗ Bishop:</strong> Moves along two dimensions (diagonal)</li>
+                        <li><strong>♕ Queen:</strong> Combines rook + bishop movement</li>
+                        <li><strong>♔ King:</strong> Like queen, but only 1 step</li>
+                        <li><strong>♘ Knight:</strong> L-shape: 2 in one dim, 1 in another</li>
+                        <li><strong>♙ Pawn:</strong> Forward in Z; captures diagonally</li>
+                    </ul>
+                </div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Promotion Dialog -->
+    <div id="promotion-dialog" class="modal">
+        <div class="modal-content">
+            <h2>Promote Pawn</h2>
+            <p>Choose a piece:</p>
+            <div class="promotion-choices">
+                <button class="promotion-choice" data-piece="queen">♕ Queen</button>
+                <button class="promotion-choice" data-piece="rook">♖ Rook</button>
+                <button class="promotion-choice" data-piece="bishop">♗ Bishop</button>
+                <button class="promotion-choice" data-piece="knight">♘ Knight</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Scripts -->
+    <script src="js/board.js"></script>
+    <script src="js/pieces.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
