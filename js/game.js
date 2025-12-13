@@ -32,11 +32,9 @@ class ChessGame {
         this.board.setSquare(1, 2, 0, 0, new King('white', { w: 1, x: 2, y: 0, z: 0 }));
         
         // Layer z=1: pawns
-        for (let w = 0; w < 4; w++) {
-            for (let x = 0; x < 4; x++) {
-                if ((w < 2 && x < 4) || (w >= 2 && x < 2)) { // 8 pawns total
-                    this.board.setSquare(w, x, 0, 1, new Pawn('white', { w, x, y: 0, z: 1 }));
-                }
+        for (let w = 0; w < 2; w++) { // Only W0 and W1
+            for (let x = 0; x < 4; x++) { // All X positions (0-3)
+                this.board.setSquare(w, x, 0, 1, new Pawn('white', { w, x, y: 0, z: 1 }));
             }
         }
 
@@ -52,11 +50,9 @@ class ChessGame {
         this.board.setSquare(1, 2, 0, 3, new King('black', { w: 1, x: 2, y: 0, z: 3 }));
 
         // Layer z=2: pawns
-        for (let w = 0; w < 4; w++) {
-            for (let x = 0; x < 4; x++) {
-                if ((w < 2 && x < 4) || (w >= 2 && x < 2)) { // 8 pawns total
-                    this.board.setSquare(w, x, 0, 2, new Pawn('black', { w, x, y: 0, z: 2 }));
-                }
+        for (let w = 0; w < 2; w++) { // Only W0 and W1
+            for (let x = 0; x < 4; x++) { // All X positions (0-3)
+                this.board.setSquare(w, x, 0, 2, new Pawn('black', { w, x, y: 0, z: 2 }));
             }
         }
     }
