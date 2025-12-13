@@ -74,20 +74,26 @@ class Board4D {
         const dy = Math.sign(to.y - from.y);
         const dz = Math.sign(to.z - from.z);
 
-        let w = from.w + dw;
-        let x = from.x + dx;
-        let y = from.y + dy;
-        let z = from.z + dz;
+        let w = from.w;
+        let x = from.x;
+        let y = from.y;
+        let z = from.z;
 
-        // Check each square along the path
+        // Move to next square
+        w += dw;
+        x += dx;
+        y += dy;
+        z += dz;
+
+        // Check each square along the path (excluding target square)
         while (w !== to.w || x !== to.x || y !== to.y || z !== to.z) {
             if (!this.isEmpty(w, x, y, z)) {
                 return false;
             }
-            if (w !== to.w) w += dw;
-            if (x !== to.x) x += dx;
-            if (y !== to.y) y += dy;
-            if (z !== to.z) z += dz;
+            w += dw;
+            x += dx;
+            y += dy;
+            z += dz;
         }
 
         return true;

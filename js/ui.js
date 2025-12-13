@@ -9,6 +9,7 @@ class ChessUI {
         this.boardElement = null;
         this.validMoveHighlights = [];
         this.promotionCallback = null;
+        this.currentPromotionPosition = null;
     }
 
     /**
@@ -28,6 +29,30 @@ class ChessUI {
             this.updateStatus();
             this.updateCapturedPieces();
             this.updateMoveHistory();
+        });
+
+        // Setup promotion dialog buttons once
+        this.setupPromotionDialog();
+    }
+
+    /**
+     * Setup promotion dialog event listeners (once)
+     */
+    setupPromotionDialog() {
+        const dialog = document.getElementById('promotion-dialog');
+        const buttons = dialog.querySelectorAll('.promotion-choice');
+        
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                if (this.currentPromotionPosition) {
+                    const pieceType = button.dataset.piece;
+                    this.game.promotePawn(this.currentPromotionPosition, pieceType);
+                    dialog.style.display = 'none';
+                    this.currentPromotionPosition = null;
+                    this.renderBoard();
+                    this.updateStatus();
+                }
+            });
         });
     }
 
@@ -331,17 +356,7 @@ class ChessUI {
      */
     showPromotionDialog(promotion) {
         const dialog = document.getElementById('promotion-dialog');
+        this.currentPromotionPosition = promotion.position;
         dialog.style.display = 'flex';
-        
-        const buttons = dialog.querySelectorAll('.promotion-choice');
-        buttons.forEach(button => {
-            button.onclick = () => {
-                const pieceType = button.dataset.piece;
-                this.game.promotePawn(promotion.position, pieceType);
-                dialog.style.display = 'none';
-                this.renderBoard();
-                this.updateStatus();
-            };
-        });
     }
 }

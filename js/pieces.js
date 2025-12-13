@@ -216,18 +216,17 @@ class King extends Piece {
         // One step in two dimensions (diagonal)
         const diagonal = [];
         const dimensionPairs = [
-            ['w', 'x'], ['w', 'y'], ['w', 'z'],
-            ['x', 'y'], ['x', 'z'], ['y', 'z']
+            { w: 1, x: 1 }, { w: 1, x: -1 }, { w: -1, x: 1 }, { w: -1, x: -1 },
+            { w: 1, y: 1 }, { w: 1, y: -1 }, { w: -1, y: 1 }, { w: -1, y: -1 },
+            { w: 1, z: 1 }, { w: 1, z: -1 }, { w: -1, z: 1 }, { w: -1, z: -1 },
+            { x: 1, y: 1 }, { x: 1, y: -1 }, { x: -1, y: 1 }, { x: -1, y: -1 },
+            { x: 1, z: 1 }, { x: 1, z: -1 }, { x: -1, z: 1 }, { x: -1, z: -1 },
+            { y: 1, z: 1 }, { y: 1, z: -1 }, { y: -1, z: 1 }, { y: -1, z: -1 }
         ];
 
-        for (const [dim1, dim2] of dimensionPairs) {
-            const signs = [[1, 1], [1, -1], [-1, 1], [-1, -1]];
-            for (const [sign1, sign2] of signs) {
-                const delta = { dw: 0, dx: 0, dy: 0, dz: 0 };
-                delta['d' + dim1] = sign1;
-                delta['d' + dim2] = sign2;
-                diagonal.push(delta);
-            }
+        for (const pair of dimensionPairs) {
+            const delta = { dw: pair.w || 0, dx: pair.x || 0, dy: pair.y || 0, dz: pair.z || 0 };
+            diagonal.push(delta);
         }
 
         const allDirections = [...orthogonal, ...diagonal];
@@ -268,18 +267,18 @@ class Knight extends Piece {
             for (let j = 0; j < dimensions.length; j++) {
                 if (i === j) continue; // Must be different dimensions
 
-                const dim2 = dimensions[i]; // Move 2 steps
-                const dim1 = dimensions[j]; // Move 1 step
+                const twoStepDim = dimensions[i]; // Move 2 steps in this dimension
+                const oneStepDim = dimensions[j]; // Move 1 step in this dimension
 
                 // Try all sign combinations
-                const moves2 = [2, -2];
-                const moves1 = [1, -1];
+                const twoStepMoves = [2, -2];
+                const oneStepMoves = [1, -1];
 
-                for (const move2 of moves2) {
-                    for (const move1 of moves1) {
+                for (const twoStep of twoStepMoves) {
+                    for (const oneStep of oneStepMoves) {
                         const target = { w, x, y, z };
-                        target[dim2] += move2;
-                        target[dim1] += move1;
+                        target[twoStepDim] += twoStep;
+                        target[oneStepDim] += oneStep;
 
                         if (this.isValidTarget(board, target)) {
                             moves.push(target);
