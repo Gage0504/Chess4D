@@ -331,7 +331,7 @@ class ChessUI {
      */
     showPromotionDialog(promotion) {
         const dialog = document.getElementById('promotion-dialog');
-        dialog.style.display = 'block';
+        dialog.style.display = 'flex';
         
         const buttons = dialog.querySelectorAll('.promotion-choice');
         buttons.forEach(button => {
